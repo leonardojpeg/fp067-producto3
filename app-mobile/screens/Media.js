@@ -2,20 +2,37 @@ import React from 'react';
 import { View, StyleSheet, Button, Text } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
-export default function Media({ route }) {
+export default function Media({ route, navigation }) {
   const { player } = route.params || {};
 
-  // URL del video de highlights por defecto si el jugador no tiene uno
-  const videoSource = player?.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  const getVideoUri = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    // Si es un archivo local "assets/videos/...", no lo podemos reproducir directamente 
+    // sin tener el archivo físico o un enlace de Firebase Storage.
+    return null;
+  };
 
-  const videoPlayer = useVideoPlayer(videoSource, player => {
+  // URL del video usando el campo correcto 'video' y mapeando los locales
+  const videoSource = getVideoUri(player?.video);
+
+  const videoPlayer = useVideoPlayer(videoSource || '', player => {
     player.loop = true;
     player.play();
   });
 
+  if (!videoSource) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Este jugador no tiene un video de highlights disponible.</Text>
+        <Button title="Volver" onPress={() => navigation.goBack()} color="#FF5733" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Highlights: {player?.name || player?.nombre || 'Jugador'}</Text>
+      <Text style={styles.title}>Highlights: {player?.nombre} {player?.apellidos}</Text>
       
       <View style={styles.videoContainer}>
         <VideoView 
@@ -28,7 +45,8 @@ export default function Media({ route }) {
 
       <View style={styles.controlsContainer}>
         <Button
-          title={videoPlayer.playing ? 'Pausa' : 'Play'}
+          title={videoPlayer.playing ? 'Pausar Video' : 'Reproducir Video'}
+          color="#FF5733"
           onPress={() => {
             if (videoPlayer.playing) {
               videoPlayer.pause();
@@ -48,17 +66,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 16,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   title: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
   },
   videoContainer: {
     width: '100%',
     aspectRatio: 16 / 9,
     backgroundColor: '#111',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   video: {
     width: '100%',
@@ -66,7 +101,7 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     marginTop: 30,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 20,
   }
 });

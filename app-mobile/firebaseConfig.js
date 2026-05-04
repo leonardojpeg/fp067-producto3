@@ -1,10 +1,9 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAFQKbBSAhnpMv2A5A8THGqhHZFmNXP6Z0",
   authDomain: "producto-2-fp067.firebaseapp.com",
-  databaseURL: "https://producto-2-fp067-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "producto-2-fp067",
   storageBucket: "producto-2-fp067.firebasestorage.app",
   messagingSenderId: "583706100820",
@@ -12,5 +11,5 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-export const db = getDatabase(app);
+export const db = getFirestore(app);
 export default app;
